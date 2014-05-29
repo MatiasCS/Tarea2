@@ -24,12 +24,12 @@ public class ClienteTCP {
     
     public ClienteTCP() throws UnknownHostException, IOException{
         this.IP = InetAddress.getByName("192.168.0.4"); 
-        this.conexionCliente = new Socket(IP, puerto);
+        this.conexionCliente = new Socket("localhost", puerto);
     }
     
     public void enviarMensaje(String mensaje) throws IOException{
         DataOutputStream outServer = new DataOutputStream(this.conexionCliente.getOutputStream());
         outServer.writeBytes(mensaje + '\n');
-        outServer.flush();
+         outServer.flush();
     }
 }

@@ -22,6 +22,11 @@ import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import TCPClient.ClienteTCP;
+import com.sun.org.apache.xerces.internal.xs.StringList;
+import java.util.AbstractList;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  *
@@ -73,56 +78,86 @@ public class ServidorHttp implements Runnable{
         try {
         
             //Lectura mensaje enviado por el cliente
-            crearHtml();
+            //crearHtml();
             entradacliente = new BufferedReader(new InputStreamReader(conexion.getInputStream()));
             String entrada = entradacliente.readLine();
-            System.out.println(entrada);//nuevo
+            System.out.println("Entrada:"+ entrada + "\n");//nuevo
             StringTokenizer token = new StringTokenizer(entrada);
             metodo = token.nextToken();
             archivoPedido = token.nextToken();
             salidaArchivo = new BufferedOutputStream(conexion.getOutputStream());
             output = new PrintWriter(conexion.getOutputStream());
             
+            
             formulario =entradacliente; //Se le da el valor a la variable de lo que envia el Usuario
 
             if(archivoPedido.equals("/"))
                 archivoPedido += inicio;
-            
-            
-            
+        
             //Implementacion GET
             if(metodo.equals("GET")){
-                FileInputStream stream;
-                
+                FileInputStream stream;               
+                File archivo = new File(directorio_raiz,archivoPedido);                    
+                int pesoArchivo = (int) archivo.length();
                 if(!archivoPedido.startsWith("/?")){
-                    File archivo = new File(directorio_raiz,archivoPedido);
-                    int pesoArchivo = (int) archivo.length();
-                    byte[] buffer = new byte[pesoArchivo];
-
-                    stream = new FileInputStream(archivo);
-                    stream.read(buffer);                
-                    String contenido = tipoDeContenido(archivoPedido);
-
+                   
+                    byte[] buffer = new byte[pesoArchivo];                   
+                    List <String> lista = obtenerContactos();
+                    
+                    if(archivoPedido.startsWith("/index")){
+                        BufferedReader index = new BufferedReader(new FileReader(archivo));
+                        String linea;
+                        String temp = "";
+                        Iterator iterador2 = lista.iterator();
+                        boolean flag = true;                        
+                        String ultimoNombre = "";
+                        boolean escribo = true;                          
+                        while(index.ready()){
+                            linea = index.readLine();
+                            if(linea.indexOf("<!--Contactos-->")>0){                                  
+                                Iterator iterador = lista.iterator();
+                                while(iterador.hasNext()){                                    
+                                    temp += (String) iterador.next();                                  
+                                }
+                            }
+                            else
+                                temp = temp + linea;
+                        }
                     output.println("HTTP/1.0 200 OK");
                     output.println("Server: Java HTTP Server 1.0");
                     output.println("Date: " + new Date());
-                    output.println("Content-length: " + pesoArchivo);
-                    output.println("Content-type: " + contenido);
-                    output.println();
-                    output.flush();
+                    output.println("Content-length: " + temp.length());
+                    output.println("Content-type: text/html");
+                    output.println("");
+                    output.println(temp);
+                    output.flush();                                               
+                    }
+                    else{
+                        stream = new FileInputStream(archivo);
+                        stream.read(buffer);                
+                        String contenido = tipoDeContenido(archivoPedido);
 
-                    salidaArchivo.write(buffer,0,pesoArchivo);
-                    salidaArchivo.flush();
+                        output.println("HTTP/1.0 200 OK");
+                        output.println("Server: Java HTTP Server 1.0");
+                        output.println("Date: " + new Date());
+                        output.println("Content-length: " + pesoArchivo);
+                        output.println("Content-type: " + contenido);
+                        output.println();
+                        output.flush();
 
-                    entradacliente.close();
-                    salidaArchivo.close();
+                        salidaArchivo.write(buffer,0,pesoArchivo);
+                        salidaArchivo.flush();
+
+                        entradacliente.close();
+                        salidaArchivo.close();
+                    }
                 }
                 else{
                     String instruccion = archivoPedido;
                     StringTokenizer t = new StringTokenizer(instruccion,"/?");
                     String mensaje = t.nextToken();
                     
-                    if(mensaje.startsWith("SEND")){
+                    if(mensaje.startsWith("mensaje")){
                         ClienteTCP TCPClient;
                         TCPClient = new ClienteTCP();
                         TCPClient.enviarMensaje(mensaje);
@@ -208,32 +243,35 @@ public class ServidorHttp implements Runnable{
         }
     }
     
-    public void crearHtml(){
+    public List<String> obtenerContactos(){
         File f = new File( "Contactos.txt" );
-        File html = new File("contacto.html");
+        List<String> Contactos = new ArrayList<>();
+        //File html = new File("contacto.html");
         BufferedReader entrada;
         try {
-            FileWriter escrito = new FileWriter(html);
-            BufferedWriter bw = new BufferedWriter(escrito);
-            PrintWriter wr = new PrintWriter(bw);  
+            //FileWriter escrito = new FileWriter(html);
+            //BufferedWriter bw = new BufferedWriter(escrito);
+            //PrintWriter wr = new PrintWriter(bw);  
 
             entrada = new BufferedReader( new FileReader( f ) );
             String linea;
-            wr.append("<HTML>");
-            wr.append("<BODY>");
+            //wr.append("<HTML>");
+            //wr.append("<BODY>");
+            System.out.println(entrada.ready());
             while(entrada.ready()){
                 linea = entrada.readLine();
                 StringTokenizer nombre = new StringTokenizer(linea);
-                
-                wr.append("<FONT FACE = 'calibri' >" + leerNombre(nombre.nextToken()) + "</FONT><BR>");
+                Contactos.add(leerNombre(nombre.nextToken()));
+                //wr.append("<FONT FACE = 'calibri' >" + leerNombre(nombre.nextToken()) + "</FONT><BR>");
             }
-            wr.append("</BODY></HTML>");
-            wr.close();
-            bw.close();
+            //wr.append("</BODY></HTML>");
+            //wr.close();
+            //bw.close();
             entrada.close();
         }catch (IOException e) {
             e.printStackTrace();
         }
+        return Contactos;
     }
     
     public String leerNombre(String nombre){

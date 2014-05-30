@@ -158,6 +158,7 @@ public class ServidorHttp implements Runnable{
                     String mensaje = t.nextToken();
                     
                     if(mensaje.startsWith("mensaje")){
+                        System.out.println("HolaHolaHola");
                         ClienteTCP TCPClient;
                         TCPClient = new ClienteTCP();
                         TCPClient.enviarMensaje(mensaje);

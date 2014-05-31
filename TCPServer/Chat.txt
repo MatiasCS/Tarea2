@@ -1,2 +1,1 @@
-SEND=nada
-SEND=nada2
+mensaje=QUEONDAMICROONDAS

@@ -19,7 +19,7 @@ import java.net.UnknownHostException;
 public class ClienteTCP {
     
     Socket conexionCliente;
-    final static int puerto = 6789;
+    final static int puerto = 8082;
     InetAddress IP;
     
     public ClienteTCP() throws UnknownHostException, IOException{

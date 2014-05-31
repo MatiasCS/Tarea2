@@ -27,7 +27,7 @@ import java.util.logging.Logger;
  */
 public class TCPServer implements Runnable{
 
-    static final int puerto = 6789;
+    static final int puerto = 8082;
     Socket conexion;
     
     /**
@@ -77,6 +77,6 @@ public class TCPServer implements Runnable{
         } catch (IOException ex) {
             Logger.getLogger(TCPServer.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+       
     }
 }

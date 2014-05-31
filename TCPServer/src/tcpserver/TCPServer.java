@@ -9,6 +9,7 @@ package tcpserver;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -31,6 +32,8 @@ public class TCPServer implements Runnable{
 
     static final int puerto = 8082;
     Socket conexion;
+    DataOutputStream outCliente;
+    String comandos[] = {"GREET","SENDOK"};
     
     /**
      * @param args the command line arguments
@@ -52,8 +55,9 @@ public class TCPServer implements Runnable{
         }
     }
     
-    public TCPServer(Socket conexion){
+    public TCPServer(Socket conexion) throws IOException{
         this.conexion = conexion;
+        this.outCliente = new DataOutputStream(this.conexion.getOutputStream());
     }
     
     //FUNCIONES SERVIDOR
@@ -61,10 +65,19 @@ public class TCPServer implements Runnable{
     //Las funciones no necesariamente tienen que tener esos argumentos, tambien se le puede pasar el mensaje entero y ir revisandolo
     //dentro de la función.
     
+    public void GREET() throws IOException{
+        String mensajeTotal = comandos[0] + "Greetings! Bienvenido al Servidor de Avioncito de Papel";
+        outCliente.writeBytes(mensajeTotal + "\n");
+        outCliente.flush();
+        
+        //implementacion
+    }
+    
     //Funcion para revisar y enviar mensajes desde el servidor al cliente
-    public void servidor_recibe_msg_cliente(String mensaje) throws IOException{
-             
-        File fichero;
+    public void SENDOK(String mensaje, String IPDestino) throws IOException{
+        //Implementacion
+        
+        /*File fichero;
         fichero = new File("Chat.txt");
             
         FileWriter escritor=new FileWriter(fichero,true);
@@ -73,7 +86,7 @@ public class TCPServer implements Runnable{
                     
         escritor_final.append(mensaje+"\r\n");
         escritor_final.close();
-        buffescritor.close();
+        buffescritor.close();*/
     }
     
     //Funcion para analizar y ver que tipo de mensaje es el que se manda (para enviar mensaje archivo...)
@@ -168,7 +181,7 @@ public class TCPServer implements Runnable{
             inClienteTCP = new BufferedReader(new InputStreamReader(conexion.getInputStream()));
             String mensaje = inClienteTCP.readLine();
             
-            servidor_recibe_msg_cliente(mensaje);
+            //servidor_recibe_msg_cliente(mensaje);
            
             
             

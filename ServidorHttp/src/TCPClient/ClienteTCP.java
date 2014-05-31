@@ -30,6 +30,6 @@ public class ClienteTCP {
     public void enviarMensaje(String mensaje) throws IOException{
         DataOutputStream outServer = new DataOutputStream(this.conexionCliente.getOutputStream());
         outServer.writeBytes(mensaje + '\n');
-         outServer.flush();
+        outServer.flush();
     }
 }

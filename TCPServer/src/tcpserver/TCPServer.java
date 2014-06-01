@@ -20,7 +20,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.StringTokenizer;
@@ -70,7 +69,6 @@ public class TCPServer implements Runnable{
         DataOutputStream outCliente;
         outCliente = new DataOutputStream(this.conexion.getOutputStream());
         String mensajeTotal = comandos[0] + "##Greetings! Bienvenido al Servidor de Avioncito de Papel";
-        System.out.println(mensajeTotal);
         outCliente.writeBytes(mensajeTotal + '\n');
         outCliente.flush();
     }
@@ -84,10 +82,10 @@ public class TCPServer implements Runnable{
         
         //Traspaso del mensaje al archivo txt que sera guardado en el servidorTCP
         File conversacion = new File(IPDestino+".txt");
-        FileWriter escritor=new FileWriter(conversacion, true);
-        BufferedWriter buffescritor=new BufferedWriter(escritor);
-        PrintWriter escritor_final= new PrintWriter(buffescritor);                    
-        escritor_final.append(mensaje + "##" +IPOrigen+"\n");
+        FileWriter escritor = new FileWriter(conversacion, true);
+        BufferedWriter buffescritor = new BufferedWriter(escritor);
+        PrintWriter escritor_final = new PrintWriter(buffescritor);                    
+        escritor_final.append(mensaje + "##" +IPOrigen+"\r\n");
         escritor_final.close();
         buffescritor.close();
         
@@ -106,12 +104,15 @@ public class TCPServer implements Runnable{
             linea = entrada.readLine();
             nSequencia -= 1;
         }
-        while(entrada.ready()){
+        while(entrada.ready()){            
             linea = entrada.readLine();
-            outCliente.writeBytes(comandos[2]+"##"+linea+"\n");
+            String mensajeTotal = comandos[2]+"##"+linea+"\n";
+            System.out.println(mensajeTotal);
+            outCliente.writeBytes(mensajeTotal);
+            outCliente.flush();
         }
         outCliente.writeBytes("FIN\n");
-        
+        outCliente.flush();
     }
     
     //Funcion para analizar y ver que tipo de mensaje es el que se manda (para enviar mensaje archivo...)
@@ -238,11 +239,14 @@ public class TCPServer implements Runnable{
                 case("SENDMSG"):
                     SENDOK("Anyone is there","192.168.0.4","192.168.0.4");
                     mensaje = inClienteTCP.readLine();
+                    System.out.println("SendMsg:"+mensaje);
                     //Quebrar la cadena;
                     //SENDOK(parametros);
                     break;
                 case("GOTMSG"):
-                    SENDMSGS("192.168.0.4",2);
+                    SENDMSGS("192.168.0.4",0);
+                    System.out.println("GotMsg:"+mensaje);
+                    mensaje = null;
                     break;
             }
             }

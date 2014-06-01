@@ -67,11 +67,9 @@ public class TCPServer implements Runnable{
         DataOutputStream outCliente;
         outCliente = new DataOutputStream(this.conexion.getOutputStream());
         String mensajeTotal = comandos[0] + "##Greetings! Bienvenido al Servidor de Avioncito de Papel";
-        outCliente.writeBytes(mensajeTotal + "\n");
+        System.out.println(mensajeTotal);
+        outCliente.writeBytes(mensajeTotal + '\n');
         outCliente.flush();
-        outCliente.close();
-        
-        //implementacion
     }
     
     //Funcion para recibir mensajes desde el cliente y guardarlos en el servidor
@@ -82,21 +80,17 @@ public class TCPServer implements Runnable{
         String mensajeTotal = comandos[1];
         
         //Traspaso del mensaje al archivo txt que sera guardado en el servidorTCP
-        File conversacion;
-        conversacion = new File(IPDestino+"_"+IPOrigen+".txt");            
-        FileWriter escritor=new FileWriter(conversacion,true);
+        File conversacion = new File(IPDestino+".txt");
+        FileWriter escritor=new FileWriter(conversacion, true);
         BufferedWriter buffescritor=new BufferedWriter(escritor);
         PrintWriter escritor_final= new PrintWriter(buffescritor);                    
-        escritor_final.append(mensaje+"\r\n");
+        escritor_final.append(mensaje + "##" +IPOrigen+"\n");
+        escritor_final.close();
+        buffescritor.close();
         
         //Se envia el mensaje SENDOK al ClienteTCP indicando que el mensaje fue recibido correctamente
         outCliente.writeBytes(mensajeTotal + "\n");
         outCliente.flush();
-        
-        //Cierre de variables
-        outCliente.close();
-        escritor_final.close();
-        buffescritor.close();
     }
     
     //Funcion para analizar y ver que tipo de mensaje es el que se manda (para enviar mensaje archivo...)
@@ -189,10 +183,23 @@ public class TCPServer implements Runnable{
         try {          
             inClienteTCP = new BufferedReader(new InputStreamReader(conexion.getInputStream()));
             String mensaje = inClienteTCP.readLine();
-            
-            //servidor_recibe_msg_cliente(mensaje);
-           
-            
+            while(mensaje != null){
+            StringTokenizer token = new StringTokenizer(mensaje, "##");
+            String metodo = token.nextToken();
+            switch(metodo){                
+                case("MEET"):
+                    GREET();
+                    mensaje = inClienteTCP.readLine();
+                    System.out.println(mensaje);
+                    break;
+                case("SENDMSG"):
+                    SENDOK("Anyone is there","192.168.0.4","192.168.0.4");
+                    mensaje = inClienteTCP.readLine();
+                    //Quebrar la cadena;
+                    //SENDOK(parametros);
+                    break;
+            }
+            }
             
         } catch (IOException ex) {
             Logger.getLogger(TCPServer.class.getName()).log(Level.SEVERE, null, ex);

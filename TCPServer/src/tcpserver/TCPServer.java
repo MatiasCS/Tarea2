@@ -32,7 +32,7 @@ public class TCPServer implements Runnable{
 
     static final int puerto = 8082;
     Socket conexion;
-    String comandos[] = {"GREET","SENDOK"};
+    String comandos[] = {"GREET","SENDOK","SENDMSGS"};
     
     /**
      * @param args the command line arguments
@@ -91,6 +91,24 @@ public class TCPServer implements Runnable{
         //Se envia el mensaje SENDOK al ClienteTCP indicando que el mensaje fue recibido correctamente
         outCliente.writeBytes(mensajeTotal + "\n");
         outCliente.flush();
+    }
+    
+    public void SENDMSGS(String IPOrigen, int nSequencia) throws FileNotFoundException, IOException{
+        File conversacion = new File(IPOrigen+".txt");
+        BufferedReader entrada = new BufferedReader(new FileReader(conversacion));
+        String linea = "";
+        DataOutputStream outCliente;
+        outCliente = new DataOutputStream(this.conexion.getOutputStream());
+        while(nSequencia>0){
+            linea = entrada.readLine();
+            nSequencia -= 1;
+        }
+        while(entrada.ready()){
+            linea = entrada.readLine();
+            outCliente.writeBytes(comandos[2]+"##"+linea+"\n");
+        }
+        outCliente.writeBytes("FIN\n");
+        
     }
     
     //Funcion para analizar y ver que tipo de mensaje es el que se manda (para enviar mensaje archivo...)
@@ -197,6 +215,9 @@ public class TCPServer implements Runnable{
                     mensaje = inClienteTCP.readLine();
                     //Quebrar la cadena;
                     //SENDOK(parametros);
+                    break;
+                case("GOTMSG"):
+                    SENDMSGS("192.168.0.4",2);
                     break;
             }
             }

@@ -183,14 +183,36 @@ public class TCPServer implements Runnable{
         
     }
     
-    //Funcion para recibir archivo del cliente.
-    public void servidor_recibe_archivo_cliente(){
+    
+    public void servidor_recibe_archivo_datos_cliente(String IP_Fuente, String IP_Destino) throws IOException{
+        DataInputStream dis = new DataInputStream( conexion.getInputStream() );
+        String nombreArchivo = dis.readUTF().toString(); 
+        int tam = dis.readInt(); 
+        //Falta ver donde guardar estos datos y como conectarlos con el archivo que será escrito más abajo.
     }
     
-    //Funcion para enviar archivos al cliente.
-    public void servidor_envia_archivo_cliente(){
-    }
     
+    //Funcion que sirve para recoger el flujo de datos del archivo enviado por el cliente y reescribirlos en un
+    //archivo en el sector del servidor
+    //Como parametros recibe nombre y largo que pueden ser obtenidos con la funcion servidor_recibe_archivo_datos_cliente
+    public void servidor_recibe_archivo_cliente(String nombre, int largo) throws FileNotFoundException, IOException{
+        String nombreArchivo=nombre;
+        int tam=largo;
+        System.out.println( "Recibiendo archivo "+nombreArchivo );
+        FileOutputStream fos = new FileOutputStream( nombreArchivo );
+        BufferedOutputStream out = new BufferedOutputStream( fos );
+        BufferedInputStream in = new BufferedInputStream( conexion.getInputStream() );
+        byte[] buffer = new byte[ tam ];
+        for( int i = 0; i < buffer.length; i++ ){            
+              buffer[ i ] = ( byte )in.read( ); 
+        }
+        out.write( buffer ); 
+        out.flush(); 
+        in.close();
+        out.close(); 
+        conexion.close();
+        System.out.println( "Archivo Recibido "+nombreArchivo );
+    }
     
     
     @Override

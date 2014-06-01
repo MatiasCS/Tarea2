@@ -32,7 +32,6 @@ public class TCPServer implements Runnable{
 
     static final int puerto = 8082;
     Socket conexion;
-    DataOutputStream outCliente;
     String comandos[] = {"GREET","SENDOK"};
     
     /**
@@ -57,7 +56,6 @@ public class TCPServer implements Runnable{
     
     public TCPServer(Socket conexion) throws IOException{
         this.conexion = conexion;
-        this.outCliente = new DataOutputStream(this.conexion.getOutputStream());
     }
     
     //FUNCIONES SERVIDOR
@@ -66,27 +64,39 @@ public class TCPServer implements Runnable{
     //dentro de la función.
     
     public void GREET() throws IOException{
-        String mensajeTotal = comandos[0] + "Greetings! Bienvenido al Servidor de Avioncito de Papel";
+        DataOutputStream outCliente;
+        outCliente = new DataOutputStream(this.conexion.getOutputStream());
+        String mensajeTotal = comandos[0] + "##Greetings! Bienvenido al Servidor de Avioncito de Papel";
         outCliente.writeBytes(mensajeTotal + "\n");
         outCliente.flush();
+        outCliente.close();
         
         //implementacion
     }
     
-    //Funcion para revisar y enviar mensajes desde el servidor al cliente
-    public void SENDOK(String mensaje, String IPDestino) throws IOException{
-        //Implementacion
+    //Funcion para recibir mensajes desde el cliente y guardarlos en el servidor
+    public void SENDOK(String mensaje, String IPDestino, String IPOrigen) throws IOException{    
+        //Variables para el envio de datos hacia el clienteTCP
+        DataOutputStream outCliente;
+        outCliente = new DataOutputStream(this.conexion.getOutputStream());
+        String mensajeTotal = comandos[1];
         
-        /*File fichero;
-        fichero = new File("Chat.txt");
-            
-        FileWriter escritor=new FileWriter(fichero,true);
+        //Traspaso del mensaje al archivo txt que sera guardado en el servidorTCP
+        File conversacion;
+        conversacion = new File(IPDestino+"_"+IPOrigen+".txt");            
+        FileWriter escritor=new FileWriter(conversacion,true);
         BufferedWriter buffescritor=new BufferedWriter(escritor);
-        PrintWriter escritor_final= new PrintWriter(buffescritor);
-                    
+        PrintWriter escritor_final= new PrintWriter(buffescritor);                    
         escritor_final.append(mensaje+"\r\n");
+        
+        //Se envia el mensaje SENDOK al ClienteTCP indicando que el mensaje fue recibido correctamente
+        outCliente.writeBytes(mensajeTotal + "\n");
+        outCliente.flush();
+        
+        //Cierre de variables
+        outCliente.close();
         escritor_final.close();
-        buffescritor.close();*/
+        buffescritor.close();
     }
     
     //Funcion para analizar y ver que tipo de mensaje es el que se manda (para enviar mensaje archivo...)
@@ -176,8 +186,7 @@ public class TCPServer implements Runnable{
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         BufferedReader inClienteTCP;
         System.out.println("Hola acepte conexion");
-        try {
-            
+        try {          
             inClienteTCP = new BufferedReader(new InputStreamReader(conexion.getInputStream()));
             String mensaje = inClienteTCP.readLine();
             

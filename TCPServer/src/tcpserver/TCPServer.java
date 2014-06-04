@@ -126,19 +126,18 @@ public class TCPServer implements Runnable{
     
     //Funcion que sirve para recoger los datos del archivo Nombre y Tamaño
     //recibe como parametros la IP_Fuente y la IP_Destino
-    public String servidor_recibe_archivo_datos_cliente(String IP_Fuente, String IP_Destino) throws IOException{
-        File archivos_compartidos = new File(IP_Fuente+"_Archivos.txt");
+    public void servidor_recibe_archivo_datos_cliente(String IP_Fuente, String IP_Destino,String nombreArchivo1, int tamannoArchivo) throws IOException{
+        File archivos_compartidos = new File(IP_Destino+"_Archivos.txt");
         FileWriter escritor = new FileWriter(archivos_compartidos, true);
         BufferedWriter buffescritor = new BufferedWriter(escritor);
         PrintWriter escritor_final = new PrintWriter(buffescritor);                    
         
-        DataInputStream dis = new DataInputStream( this.conexion.getInputStream() );
-        String nombreArchivo = dis.readUTF().toString(); 
-        int tam = dis.readInt(); 
-        escritor_final.append(nombreArchivo + "##" +tam+ "##" +IP_Destino +"\r\n");
+        String nombreArchivo = nombreArchivo1; 
+        int tam = tamannoArchivo;
+        escritor_final.append(nombreArchivo + "##" +tam+ "##" +IP_Fuente +"\r\n");
         escritor_final.close();
         buffescritor.close();
-        return (nombreArchivo+"##"+tam);
+       
     }
     
     //Funcion que sirve para recoger el flujo de datos del archivo enviado por el cliente y reescribirlos en un
@@ -152,14 +151,15 @@ public class TCPServer implements Runnable{
         BufferedOutputStream out = new BufferedOutputStream( fos );
         BufferedInputStream in = new BufferedInputStream( conexion.getInputStream() );
         byte[] buffer = new byte[ tam ];
-        for( int i = 0; i < buffer.length; i++ ){            
+        
+        for( int i = 0; i < buffer.length; i++ ){  
               buffer[ i ] = ( byte )in.read( ); 
+              
         }
         out.write( buffer ); 
         out.flush(); 
         in.close();
         out.close(); 
-        //conexion.close();
         System.out.println( "Archivo Recibido "+nombreArchivo );
     }
     /*
@@ -223,6 +223,7 @@ public class TCPServer implements Runnable{
         try {          
             inClienteTCP = new BufferedReader(new InputStreamReader(conexion.getInputStream()));
             String mensaje = inClienteTCP.readLine();
+            
             while(mensaje != null){
             StringTokenizer token = new StringTokenizer(mensaje, "##");
             String metodo = token.nextToken();
@@ -231,8 +232,6 @@ public class TCPServer implements Runnable{
                     GREET();
                     mensaje = inClienteTCP.readLine();
                     System.out.println(mensaje);
-                    
-                    
                     break;
                 case("SENDMSG"):
                     String IPDestino = token.nextToken();
@@ -248,6 +247,16 @@ public class TCPServer implements Runnable{
                     SENDMSGS(IPOrigen1,secuencia);
                     System.out.println("GotMsg:"+mensaje);
                     mensaje = null;
+                    break;
+                case("SENDFILE"):
+                    String IPOrigen_Archivo= token.nextToken();
+                    String IPDestino_Archivo=token.nextToken();
+                    String nombreArchivo = token.nextToken();
+                    int tamannoArchivo = Integer.parseInt(token.nextToken());
+                    servidor_recibe_archivo_datos_cliente(IPOrigen_Archivo,IPDestino_Archivo,nombreArchivo,tamannoArchivo);
+                    servidor_recibe_archivo_cliente(nombreArchivo,tamannoArchivo);
+                    break;
+                case("GOTFILE"):
                     break;
             }
             }

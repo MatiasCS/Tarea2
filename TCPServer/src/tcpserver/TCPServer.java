@@ -96,23 +96,30 @@ public class TCPServer implements Runnable{
     
     public void SENDMSGS(String IPOrigen, int nSequencia) throws FileNotFoundException, IOException{
         File conversacion = new File(IPOrigen+".txt");
-        BufferedReader entrada = new BufferedReader(new FileReader(conversacion));
-        String linea = "";
         DataOutputStream outCliente;
         outCliente = new DataOutputStream(this.conexion.getOutputStream());
-        while(nSequencia>0){
-            linea = entrada.readLine();
-            nSequencia -= 1;
-        }
-        while(entrada.ready()){            
-            linea = entrada.readLine();
-            String mensajeTotal = comandos[2]+"##"+linea+"\n";
-            System.out.println(mensajeTotal);
-            outCliente.writeBytes(mensajeTotal);
+        String linea = "";
+        
+        if(!conversacion.exists()){
+            outCliente.writeBytes("FIN\n");
             outCliente.flush();
         }
-        outCliente.writeBytes("FIN\n");
-        outCliente.flush();
+        else{
+            BufferedReader entrada = new BufferedReader(new FileReader(conversacion));
+            while(nSequencia>0){
+                linea = entrada.readLine();
+                nSequencia -= 1;
+            }
+            while(entrada.ready()){            
+                linea = entrada.readLine();
+                String mensajeTotal = comandos[2]+"##"+linea+"\n";
+                System.out.println(mensajeTotal);
+                outCliente.writeBytes(mensajeTotal);
+                outCliente.flush();
+            }
+            outCliente.writeBytes("FIN\n");
+            outCliente.flush();
+        }
     }
     
     //Funcion para analizar y ver que tipo de mensaje es el que se manda (para enviar mensaje archivo...)
@@ -237,14 +244,17 @@ public class TCPServer implements Runnable{
                     System.out.println(mensaje);
                     break;
                 case("SENDMSG"):
-                    SENDOK("Anyone is there","192.168.0.4","192.168.0.4");
+                    String IPDestino = token.nextToken();
+                    String IPOrigen = token.nextToken();
+                    String message = token.nextToken();
+                    SENDOK(message,IPDestino,IPOrigen);
                     mensaje = inClienteTCP.readLine();
                     System.out.println("SendMsg:"+mensaje);
-                    //Quebrar la cadena;
-                    //SENDOK(parametros);
                     break;
                 case("GOTMSG"):
-                    SENDMSGS("192.168.0.4",0);
+                    String IPOrigen1 = token.nextToken();
+                    int secuencia = Integer.parseInt(token.nextToken());
+                    SENDMSGS(IPOrigen1,secuencia);
                     System.out.println("GotMsg:"+mensaje);
                     mensaje = null;
                     break;

@@ -13,6 +13,7 @@ import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -86,6 +87,7 @@ public class TCPServer implements Runnable{
         BufferedWriter buffescritor = new BufferedWriter(escritor);
         PrintWriter escritor_final = new PrintWriter(buffescritor);                    
         escritor_final.append(mensaje + "##" +IPOrigen+"\r\n");
+        //SE GUARDA DE LA FORMA MENSAJE##IP_ORIGEN
         escritor_final.close();
         buffescritor.close();
         
@@ -122,86 +124,22 @@ public class TCPServer implements Runnable{
         }
     }
     
-    //Funcion para analizar y ver que tipo de mensaje es el que se manda (para enviar mensaje archivo...)
-    public void revisar_tipo_msg_cliente(){}
-    
-    public void servidor_envia_msg_cliente(String IP_fuente, String IP_destino, String mensaje){
-        System.out.println(IP_fuente);
-        System.out.println(IP_destino);
-        System.out.println(mensaje);
-        }
-    
-    public void servidor_revisa_msg_cliente(String IP_solicitante, int puerto) throws IOException{
-        try {
-            //Variables de validación
-            int validar=0;
-            //Variables utilizadas para leer
-            FileReader fr = new FileReader ("Chat.txt");
-            BufferedReader br = new BufferedReader(fr);
-            String linea;
-            //Variables utilizadas para la separación del String
-            StringTokenizer aux1;
-            String aux2;
-            //Variables utilizadas para guardar campos.
-            String IP_d;            //IP destino
-            String IP_f;            //IP fuente
-            String mensaje;
-            
-            //Variables para poder escribir los mensajes que no pertenecen a la IP
-            File fichero;
-            fichero = new File("temporal.txt");
-            FileWriter escritor=new FileWriter(fichero,true);
-            BufferedWriter buffescritor=new BufferedWriter(escritor);
-            PrintWriter escritor_final= new PrintWriter(buffescritor);
-
-            //En este caso se hace la suposición que el string guardado será
-            //SEND_M##IP_DESTINO##IP_FUENTE##MENSAJE
-            while ((linea=br.readLine())!=null){
-                System.out.println(linea);
-                validar=0;
-                aux1=new StringTokenizer(linea,"##");
-                while(aux1.hasMoreTokens()){
-                    aux2= aux1.nextToken();         //SEND
-                    if (!aux1.hasMoreTokens()){
-                        break;
-                    }
-                    aux2= aux1.nextToken();         //IP_DESTINO
-                    
-                    if (aux2.equals(IP_solicitante)){
-                        validar=1;
-                        IP_d=aux2;
-                        IP_f=aux1.nextToken();
-                        mensaje=aux1.nextToken();
-                        servidor_envia_msg_cliente(IP_d,IP_f,mensaje);     
-                    }
-                    else {
-                        break;
-                    }
-                }
-                if (validar==0){
-                escritor_final.append(linea+"\r\n");    
-                }
-            }
-                   
-            fr.close();
-            buffescritor.close();
-            
-            
-        } catch (FileNotFoundException ex) {
-            System.out.println("No se ha escrito ningun mensaje aún");
-            Logger.getLogger(TCPServer.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    //Funcion que sirve para recoger los datos del archivo Nombre y Tamaño
+    //recibe como parametros la IP_Fuente y la IP_Destino
+    public String servidor_recibe_archivo_datos_cliente(String IP_Fuente, String IP_Destino) throws IOException{
+        File archivos_compartidos = new File(IP_Fuente+"_Archivos.txt");
+        FileWriter escritor = new FileWriter(archivos_compartidos, true);
+        BufferedWriter buffescritor = new BufferedWriter(escritor);
+        PrintWriter escritor_final = new PrintWriter(buffescritor);                    
         
-    }
-    
-    
-    public void servidor_recibe_archivo_datos_cliente(String IP_Fuente, String IP_Destino) throws IOException{
-        DataInputStream dis = new DataInputStream( conexion.getInputStream() );
+        DataInputStream dis = new DataInputStream( this.conexion.getInputStream() );
         String nombreArchivo = dis.readUTF().toString(); 
         int tam = dis.readInt(); 
-        //Falta ver donde guardar estos datos y como conectarlos con el archivo que será escrito más abajo.
+        escritor_final.append(nombreArchivo + "##" +tam+ "##" +IP_Destino +"\r\n");
+        escritor_final.close();
+        buffescritor.close();
+        return (nombreArchivo+"##"+tam);
     }
-    
     
     //Funcion que sirve para recoger el flujo de datos del archivo enviado por el cliente y reescribirlos en un
     //archivo en el sector del servidor
@@ -221,16 +159,67 @@ public class TCPServer implements Runnable{
         out.flush(); 
         in.close();
         out.close(); 
-        conexion.close();
+        //conexion.close();
         System.out.println( "Archivo Recibido "+nombreArchivo );
     }
+    /*
+    //Funcion para enviar por una conexion los datos Nombre y Tamaño del archivo que se mandará
+    //Como parametro recibe un directorio que será entregado desde la página WEB semantica
+    public void servidor_envia_nombre_y_largo() throws IOException{
+        DataOutputStream dos = new DataOutputStream( this.conexion.getOutputStream());
+        dos.writeUTF("");
+        dos.writeInt(717263);
+        dos.flush();
+    }
     
+    //Funcion para enviar por una conexion el Flujo de datos del archivo.
+    //Como parametros recibe el directorio del archivo
+    public void servidor_envia_archivo_cliente() throws FileNotFoundException, IOException{
+        String nombreArchivo="Documento.pdf";
+        File archivo = new File( nombreArchivo );
+        int largo_archivo = 717263;
+        FileInputStream fis = new FileInputStream( nombreArchivo );
+        BufferedInputStream bis = new BufferedInputStream( fis );
+        BufferedOutputStream bos = new BufferedOutputStream( conexion.getOutputStream());
+        byte[] buffer = new byte[ largo_archivo ];
+        bis.read( buffer ); 
+        for( int i = 0; i < buffer.length; i++ )
+        {
+            bos.write( buffer[ i ] ); 
+        } 
+        bis.close();
+        bos.close();
+        conexion.close(); 
+        
+    }*/
     
     @Override
     public void run() {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         BufferedReader inClienteTCP;
         System.out.println("Hola acepte conexion");
+       
+        /*
+        Acá esta lo que responde el servidor en este caso, falta colocarlo por caso como esta abajo
+        acá necesitare ayuda por que trate de ponerlo pero no pude xd pero iwal deberia funcionar.
+        
+        try {    
+        servidor_recibe_archivo_datos_cliente("18083782-5","18083782-4");
+        servidor_recibe_archivo_cliente("Documento.pdf",717263);
+        } catch (IOException ex) {
+            Logger.getLogger(TCPServer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        try {
+            servidor_envia_archivo_cliente();
+        } catch (IOException ex) {
+            Logger.getLogger(TCPServer.class.getName()).log(Level.SEVERE, null, ex);
+        }*/
+        
+        
+        
+        
+        
+        
         try {          
             inClienteTCP = new BufferedReader(new InputStreamReader(conexion.getInputStream()));
             String mensaje = inClienteTCP.readLine();
@@ -242,6 +231,8 @@ public class TCPServer implements Runnable{
                     GREET();
                     mensaje = inClienteTCP.readLine();
                     System.out.println(mensaje);
+                    
+                    
                     break;
                 case("SENDMSG"):
                     String IPDestino = token.nextToken();

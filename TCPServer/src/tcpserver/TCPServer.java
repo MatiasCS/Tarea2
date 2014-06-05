@@ -144,23 +144,20 @@ public class TCPServer implements Runnable{
     //archivo en el sector del servidor
     //Como parametros recibe nombre y largo que pueden ser obtenidos con la funcion servidor_recibe_archivo_datos_cliente
     public void servidor_recibe_archivo_cliente(String nombre, int largo) throws FileNotFoundException, IOException{
-        String nombreArchivo=nombre;
-        int tam=largo;
-        System.out.println( "Recibiendo archivo "+nombreArchivo );
-        FileOutputStream fos = new FileOutputStream( nombreArchivo );
-        BufferedOutputStream out = new BufferedOutputStream( fos );
-        BufferedInputStream in = new BufferedInputStream( conexion.getInputStream() );
-        byte[] buffer = new byte[ tam ];
-        
-        for( int i = 0; i < buffer.length; i++ ){  
-              buffer[ i ] = ( byte )in.read( ); 
-              
-        }
-        out.write( buffer ); 
-        out.flush(); 
-        in.close();
-        out.close(); 
-        System.out.println( "Archivo Recibido "+nombreArchivo );
+        ServerSocket serverSocket = new ServerSocket(15123);
+        Socket socket = serverSocket.accept();
+        byte [] bytearray  = new byte [largo];
+	    InputStream is = socket.getInputStream();
+	    FileOutputStream fos = new FileOutputStream(nombre);
+	    BufferedOutputStream bos = new BufferedOutputStream(fos);
+            is.read( bytearray );
+             for ( int i = 0; i < bytearray.length; i++ ) {
+                bos.write( bytearray[ i ] );
+             }
+	    bos.flush();
+	    bos.close();
+        fos.close();
+	    socket.close();
     }
     /*
     //Funcion para enviar por una conexion los datos Nombre y Tamaño del archivo que se mandará

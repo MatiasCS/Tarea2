@@ -19,6 +19,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
@@ -147,76 +148,24 @@ public class TCPServer implements Runnable{
         ServerSocket serverSocket = new ServerSocket(15123);
         Socket socket = serverSocket.accept();
         byte [] bytearray  = new byte [largo];
-	    InputStream is = socket.getInputStream();
-	    FileOutputStream fos = new FileOutputStream(nombre);
-	    BufferedOutputStream bos = new BufferedOutputStream(fos);
-            is.read( bytearray );
-             for ( int i = 0; i < bytearray.length; i++ ) {
-                bos.write( bytearray[ i ] );
-             }
-	    bos.flush();
-	    bos.close();
+        InputStream is = socket.getInputStream();
+	FileOutputStream fos = new FileOutputStream(nombre);
+	BufferedOutputStream bos = new BufferedOutputStream(fos);
+        is.read( bytearray );
+        for ( int i = 0; i < bytearray.length; i++ ) {
+            bos.write( bytearray[ i ] );
+        }
+	bos.flush();
+	bos.close();
         fos.close();
-	    socket.close();
+	socket.close();
     }
-    /*
-    //Funcion para enviar por una conexion los datos Nombre y Tamaño del archivo que se mandará
-    //Como parametro recibe un directorio que será entregado desde la página WEB semantica
-    public void servidor_envia_nombre_y_largo() throws IOException{
-        DataOutputStream dos = new DataOutputStream( this.conexion.getOutputStream());
-        dos.writeUTF("");
-        dos.writeInt(717263);
-        dos.flush();
-    }
-    
-    //Funcion para enviar por una conexion el Flujo de datos del archivo.
-    //Como parametros recibe el directorio del archivo
-    public void servidor_envia_archivo_cliente() throws FileNotFoundException, IOException{
-        String nombreArchivo="Documento.pdf";
-        File archivo = new File( nombreArchivo );
-        int largo_archivo = 717263;
-        FileInputStream fis = new FileInputStream( nombreArchivo );
-        BufferedInputStream bis = new BufferedInputStream( fis );
-        BufferedOutputStream bos = new BufferedOutputStream( conexion.getOutputStream());
-        byte[] buffer = new byte[ largo_archivo ];
-        bis.read( buffer ); 
-        for( int i = 0; i < buffer.length; i++ )
-        {
-            bos.write( buffer[ i ] ); 
-        } 
-        bis.close();
-        bos.close();
-        conexion.close(); 
-        
-    }*/
     
     @Override
     public void run() {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         BufferedReader inClienteTCP;
         System.out.println("Hola acepte conexion");
-       
-        /*
-        Acá esta lo que responde el servidor en este caso, falta colocarlo por caso como esta abajo
-        acá necesitare ayuda por que trate de ponerlo pero no pude xd pero iwal deberia funcionar.
-        
-        try {    
-        servidor_recibe_archivo_datos_cliente("18083782-5","18083782-4");
-        servidor_recibe_archivo_cliente("Documento.pdf",717263);
-        } catch (IOException ex) {
-            Logger.getLogger(TCPServer.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        try {
-            servidor_envia_archivo_cliente();
-        } catch (IOException ex) {
-            Logger.getLogger(TCPServer.class.getName()).log(Level.SEVERE, null, ex);
-        }*/
-        
-        
-        
-        
-        
-        
         try {          
             inClienteTCP = new BufferedReader(new InputStreamReader(conexion.getInputStream()));
             String mensaje = inClienteTCP.readLine();
@@ -252,6 +201,7 @@ public class TCPServer implements Runnable{
                     int tamannoArchivo = Integer.parseInt(token.nextToken());
                     servidor_recibe_archivo_datos_cliente(IPOrigen_Archivo,IPDestino_Archivo,nombreArchivo,tamannoArchivo);
                     servidor_recibe_archivo_cliente(nombreArchivo,tamannoArchivo);
+                    mensaje=null;
                     break;
                 case("GOTFILE"):
                     break;

@@ -21,9 +21,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -145,21 +147,100 @@ public class TCPServer implements Runnable{
     //archivo en el sector del servidor
     //Como parametros recibe nombre y largo que pueden ser obtenidos con la funcion servidor_recibe_archivo_datos_cliente
     public void servidor_recibe_archivo_cliente(String nombre, int largo) throws FileNotFoundException, IOException{
-        ServerSocket serverSocket = new ServerSocket(15123);
-        Socket socket = serverSocket.accept();
-        byte [] bytearray  = new byte [largo];
-        InputStream is = socket.getInputStream();
-	FileOutputStream fos = new FileOutputStream(nombre);
-	BufferedOutputStream bos = new BufferedOutputStream(fos);
-        is.read( bytearray );
-        for ( int i = 0; i < bytearray.length; i++ ) {
-            bos.write( bytearray[ i ] );
+        PrintWriter alServidor;
+        BufferedReader delTeclado;
+        DataInputStream delServidor;
+        String tecleado; 
+        
+        try {
+        ServerSocket yo = new ServerSocket(15123);
+        Socket nose = yo.accept();
+        delTeclado = new BufferedReader(new InputStreamReader(System.in));
+        FileOutputStream fos = new FileOutputStream(nombre);
+        BufferedOutputStream out = new BufferedOutputStream( fos );
+        BufferedInputStream in = new BufferedInputStream( nose.getInputStream() );
+        // Creamos el array de bytes para leer los datos del archivo
+        byte[] buffer = new byte[largo];
+        // Obtenemos el archivo mediante la lectura de bytes enviados
+        for ( int i = 0; i < buffer.length; i++ ) {
+              buffer[ i ] = ( byte )in.read( );
         }
-	bos.flush();
-	bos.close();
-        fos.close();
-	socket.close();
+        out.write( buffer );
+        out.flush();
+        in.close();
+        out.close();
+        nose.close();
+        yo.close();
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            System.exit(1);
+        }
+        
+        
+        
     }
+    
+    
+/*    public void servidor_revisa_archivos(String ip_solicitante) throws FileNotFoundException, IOException{
+        FileInputStream fstream = new FileInputStream(ip_solicitante+"_Archivos.textfile.txt");
+        DataInputStream in = new DataInputStream(fstream);
+        BufferedReader br = new BufferedReader(new InputStreamReader(in));
+        String strLine;
+        
+         while ((strLine = br.readLine()) != null)   {  
+            StringTokenizer token = new StringTokenizer(strLine, "##");
+            String nombreArchivo= token.nextToken();
+            int largo=Integer.parseInt(token.nextToken());
+            String ip_fuente = token.nextToken();
+            servidor_envia_datos_archivos(nombreArchivo,largo);
+            
+            
+            
+        }     
+    }
+    */
+    public void servidor_envia_datos_archivos(String nombre,int largo) throws IOException{
+        DataOutputStream outCliente;
+        outCliente = new DataOutputStream(this.conexion.getOutputStream());
+        String mensajeTotal = nombre+"##"+largo;
+        outCliente.writeBytes(mensajeTotal + '\n');
+        outCliente.flush();
+    }
+    
+    public void servidor_envia_archivo(String nombre) throws FileNotFoundException, IOException{
+        /*ServerSocket serverSocket = new ServerSocket(15123);
+        Socket socket = serverSocket.accept();
+        File transferFile = new File (nombre);
+        byte [] bytearray  = new byte [(int)transferFile.length()];
+        FileInputStream fin = new FileInputStream(transferFile);
+        BufferedInputStream bin = new BufferedInputStream(fin);
+        bin.read(bytearray,0,bytearray.length);
+        OutputStream os = socket.getOutputStream();
+        os.write(bytearray,0,bytearray.length);
+        os.flush();
+        socket.close();*/
+        FileInputStream fis = null;
+        BufferedInputStream bis = null;
+        OutputStream os = null;
+        ServerSocket servsock = null;
+        Socket sock = null;
+        servsock = new ServerSocket(15123);     
+          sock = servsock.accept();
+          File myFile = new File (nombre);
+          byte [] mybytearray  = new byte [(int)myFile.length()];
+          fis = new FileInputStream(myFile);
+          bis = new BufferedInputStream(fis);
+          bis.read(mybytearray,0,mybytearray.length);
+          os = sock.getOutputStream();
+          os.write(mybytearray,0,mybytearray.length);
+          os.flush();
+          sock.close();
+          servsock.close();
+        }
+        
+        
+        
+    
     
     @Override
     public void run() {
@@ -204,13 +285,39 @@ public class TCPServer implements Runnable{
                     mensaje=null;
                     break;
                 case("GOTFILE"):
+                    String IP_solicitante = token.nextToken();
+                    FileInputStream fstream = new FileInputStream(IP_solicitante+"_Archivos.txt");
+                    DataInputStream in = new DataInputStream(fstream);
+                    BufferedReader br = new BufferedReader(new InputStreamReader(in));
+                    
+                    /*String strLine = strLine = br.readLine();
+                    StringTokenizer token1 = new StringTokenizer(strLine, "##");
+                    String nombreArchivo_= token1.nextToken();
+                    int largo=Integer.parseInt(token1.nextToken());
+                    String ip_fuente = token1.nextToken();
+                    servidor_envia_datos_archivos(nombreArchivo_,largo);
+                    servidor_envia_archivo(nombreArchivo_);*/
+                    String strLine;
+                    while ((strLine = br.readLine()) != null)   {  
+                        System.out.println(strLine);
+                        StringTokenizer token1 = new StringTokenizer(strLine, "##");
+                        String nombreArchivo_= token1.nextToken();
+                        int largo=Integer.parseInt(token1.nextToken());
+                        String ip_fuente = token1.nextToken();
+                        servidor_envia_datos_archivos(nombreArchivo_,largo);
+                        servidor_envia_archivo(nombreArchivo_);
+                    }
+                    br.close();
+                    fstream.close();
+                    
+                    mensaje=null;
                     break;
             }
-            }
+        }
             
         } catch (IOException ex) {
             Logger.getLogger(TCPServer.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        } 
        
     }
 }

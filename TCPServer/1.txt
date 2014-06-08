@@ -15,3 +15,6 @@ Hola##192.168.1.4
 Hola+como+estas##192.168.1.4
 Hola+como+estas##192.168.1.4
 Hola+como+estas##192.168.1.4
+Hola+como+estas##192.168.1.4
+Hola##186.37.73.188
+Mandado+desde+fuera##192.168.1.2

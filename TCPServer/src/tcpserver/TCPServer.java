@@ -177,9 +177,6 @@ public class TCPServer implements Runnable{
             System.err.println(e.getMessage());
             System.exit(1);
         }
-        
-        
-        
     }
     
     //Funcion que envia los datos del archivo al cliente que pidio previamente "bajar" el archivo
@@ -199,17 +196,17 @@ public class TCPServer implements Runnable{
         ServerSocket servsock = null;
         Socket sock = null;
         servsock = new ServerSocket(15123);     
-          sock = servsock.accept();
-          File myFile = new File (nombre);
-          byte [] mybytearray  = new byte [(int)myFile.length()];
-          fis = new FileInputStream(myFile);
-          bis = new BufferedInputStream(fis);
-          bis.read(mybytearray,0,mybytearray.length);
-          os = sock.getOutputStream();
-          os.write(mybytearray,0,mybytearray.length);
-          os.flush();
-          sock.close();
-          servsock.close();
+        sock = servsock.accept();
+        File myFile = new File (nombre);
+        byte [] mybytearray  = new byte [(int)myFile.length()];
+        fis = new FileInputStream(myFile);
+        bis = new BufferedInputStream(fis);
+        bis.read(mybytearray,0,mybytearray.length);
+        os = sock.getOutputStream();
+        os.write(mybytearray,0,mybytearray.length);
+        os.flush();
+        sock.close();
+        servsock.close();
         }
     
     //Se explica por si sola
@@ -237,12 +234,7 @@ public class TCPServer implements Runnable{
           temporal.renameTo(fichero);
             
    
-    }
-        
-    
-        
-    
-    
+    }    
     @Override
     public void run() {
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -286,11 +278,13 @@ public class TCPServer implements Runnable{
                     mensaje=null;
                     break;
                 case("GOTFILE"):
+                    //System.out.println(mensaje);
                     String IP_solicitante = token.nextToken();
-                    FileInputStream fstream = new FileInputStream(IP_solicitante+"_Archivos.txt");
+                    FileInputStream fstream = new FileInputStream("192.168.1.6"+"_Archivos.txt");
                     DataInputStream in = new DataInputStream(fstream);
                     BufferedReader br = new BufferedReader(new InputStreamReader(in));
                     String strLine = strLine = br.readLine();
+                    System.out.println("Esto es strline: " +strLine);
                     StringTokenizer token1 = new StringTokenizer(strLine, "##");
                     
                     String nombreArchivo_= token1.nextToken();
